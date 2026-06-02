@@ -152,7 +152,7 @@ Optional:
 Push image to registry:
 
 - Docker Hub
-https://hub.docker.com/repositories/pawarmahesh2511
+https://hub.docker.com/repositories/pawarakash2511
 
 ---
 
