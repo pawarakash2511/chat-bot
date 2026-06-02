@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 env:
-  IMAGE_NAME: pawarmahesh2511/chatbot-app
+  IMAGE_NAME: pawarakash2511/chatbot-app
 
 jobs:
   build:
