@@ -16,11 +16,20 @@ def _get_chat():
 
 
 def _summary_language(messages: list) -> str:
-    """Use Arabic if any user message contains Arabic characters, else English."""
+    """
+    Detect language from user messages.
+    Hebrew Unicode block: U+0590–U+05FF → Hebrew
+    Arabic Unicode block: U+0600–U+06FF → Arabic
+    Otherwise → English
+    """
     user_text = " ".join(
         m.content for m in messages if isinstance(m, HumanMessage)
     )
-    return "Arabic" if re.search(r'[؀-ۿ]', user_text) else "English"
+    if re.search(r'[֐-׿]', user_text):
+        return "Hebrew"
+    if re.search(r'[؀-ۿ]', user_text):
+        return "Arabic"
+    return "English"
 
 
 def summarize(state):

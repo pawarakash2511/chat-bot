@@ -22,7 +22,7 @@ It supports:
 * Conversational memory
 * Document-based Q&A (RAG)
 * Strict knowledge-base-only responses — the bot refuses to answer outside ingested documents
-* Multilingual responses (Arabic / English)
+* Multilingual responses (Hebrew / Arabic / English — auto-detected from question language)
 * Scalable backend design
 
 ## 🎯 Why This Project
@@ -119,7 +119,7 @@ Two separate GitHub Actions workflows — see [CI_CD.md](CI_CD.md) for the full 
 | `ci.yml` | Manual (`workflow_dispatch`) | Install deps → Docker build → push to Docker Hub |
 | `cd.yml` | Auto after CI succeeds | SSH to EC2 → generate `.env` → pull image → deploy → health check |
 
-Docker Hub: `pawarmahesh2511/chatbot-app`
+Docker Hub: `pawarakash2511/chatbot-app`
 
 ---
 
@@ -169,9 +169,9 @@ LLM_PROVIDER=openai
 LLM_MODEL=gpt-4o-mini
 OPENAI_API_KEY=your_openai_key
 
-# Embeddings — free (no API key needed)
+# Embeddings — multilingual (supports Hebrew, Arabic, English — no API key needed)
 EMBEDDING_PROVIDER=huggingface
-EMBEDDING_MODEL=all-MiniLM-L6-v2
+EMBEDDING_MODEL=sentence-transformers/paraphrase-multilingual-mpnet-base-v2
 
 REDIS_HOST=localhost
 REDIS_PORT=6379
@@ -260,14 +260,14 @@ Configurable via environment variables:
 - Uses conversation summary (long-term memory)
 - Uses recent messages (short-term memory)
 - Uses retrieved context (RAG)
-- Generates final response in the user's language (Arabic / English)
+- Generates final response in the user's language — Hebrew / Arabic / English auto-detected from question
 
 ## 🧠 Key Features
 
 * ✅ Conversational memory (short + long-term)
 * ✅ RAG-based retrieval system
 * ✅ Multi-LLM provider support (OpenAI, Anthropic, Groq)
-* ✅ Multilingual responses (Arabic / English auto-detected)
+* ✅ Multilingual responses (Hebrew / Arabic / English — auto-detected from question language)
 * ✅ LangGraph workflow orchestration
 * ✅ Redis-based persistence with TTL
 * ✅ Modular backend design

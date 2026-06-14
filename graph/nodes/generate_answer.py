@@ -17,11 +17,16 @@ def _get_chat():
 
 def _response_language(question: str) -> str:
     """
-    Detect language with Python — never leaves it to LLM guessing.
-    Arabic Unicode block: U+0600–U+06FF
-    Rule: any Arabic characters present (even mixed) → Arabic, else English.
+    Detect language from the question.
+    Hebrew Unicode block: U+0590–U+05FF → Hebrew
+    Arabic Unicode block: U+0600–U+06FF → Arabic
+    Otherwise → English
     """
-    return "Arabic" if re.search(r'[؀-ۿ]', question) else "English"
+    if re.search(r'[֐-׿]', question):
+        return "Hebrew"
+    if re.search(r'[؀-ۿ]', question):
+        return "Arabic"
+    return "English"
 
 
 def generate_answer(state):

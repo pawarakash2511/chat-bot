@@ -18,7 +18,9 @@ docker-compose up --build
 uvicorn main:app --host 0.0.0.0 --port 8000 --workers 2
 ```
 
-Copy `.env.example` to `.env`. Minimum to run: set `LLM_PROVIDER=groq`, `LLM_MODEL=llama-3.1-8b-instant`, `GROQ_API_KEY` (free at console.groq.com), `EMBEDDING_PROVIDER=huggingface`, `EMBEDDING_MODEL=all-MiniLM-L6-v2`.
+Copy `.env.example` to `.env`. Minimum to run: set `LLM_PROVIDER=groq`, `LLM_MODEL=llama-3.1-8b-instant`, `GROQ_API_KEY` (free at console.groq.com), `EMBEDDING_PROVIDER=huggingface`, `EMBEDDING_MODEL=sentence-transformers/paraphrase-multilingual-mpnet-base-v2`.
+
+> **Hebrew support:** The chatbot detects the question language and responds in the same language (Hebrew → Hebrew, English → English, Arabic → Arabic). Use the multilingual embedding model above for accurate Hebrew PDF retrieval.
 
 ## Architecture
 
@@ -79,7 +81,7 @@ LLM_PROVIDER=openai | anthropic | groq
 LLM_MODEL=gpt-4o-mini | claude-3-5-sonnet-20241022 | llama-3.1-8b-instant
 
 EMBEDDING_PROVIDER=openai | huggingface
-EMBEDDING_MODEL=text-embedding-3-small | all-MiniLM-L6-v2
+EMBEDDING_MODEL=text-embedding-3-small | sentence-transformers/paraphrase-multilingual-mpnet-base-v2
 ```
 
 ## CI/CD
@@ -88,7 +90,7 @@ Two separate workflow files, CD auto-triggers when CI completes successfully.
 
 ```
 .github/workflows/ci.yml   — manual trigger (workflow_dispatch)
-  Install deps → docker build → push to Docker Hub (pawarmahesh2511/chatbot-app:<sha>)
+  Install deps → docker build → push to Docker Hub (pawarakash2511/chatbot-app:<sha>)
         ↓  workflow_run: completed (auto)
 .github/workflows/cd.yml
   SSH to EC2 → copy docker-compose.yml → generate .env
@@ -102,13 +104,13 @@ Two separate workflow files, CD auto-triggers when CI completes successfully.
 | `EC2_HOST` | EC2 public IP or hostname |
 | `EC2_USERNAME` | SSH user (`ec2-user` or `ubuntu`) |
 | `EC2_SSH_KEY` | PEM private key contents |
-| `DOCKERHUB_USERNAME` | `pawarmahesh2511` |
+| `DOCKERHUB_USERNAME` | `pawarakash2511` |
 | `DOCKERHUB_TOKEN` | Docker Hub access token |
 | `LLM_PROVIDER` | `groq` |
 | `LLM_MODEL` | `llama-3.1-8b-instant` |
 | `GROQ_API_KEY` | Groq API key (free at console.groq.com) |
 | `EMBEDDING_PROVIDER` | `huggingface` |
-| `EMBEDDING_MODEL` | `all-MiniLM-L6-v2` |
+| `EMBEDDING_MODEL` | `sentence-transformers/paraphrase-multilingual-mpnet-base-v2` |
 | `REDIS_PASSWORD` | Leave blank (Redis has no password) |
 
 See [CI_CD.md](CI_CD.md) for full setup guide and troubleshooting.

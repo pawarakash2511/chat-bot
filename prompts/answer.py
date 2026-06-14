@@ -22,5 +22,5 @@ Rules:
 - Be concise (2-3 sentences max).
 - Do not repeat history.
 - YOU MUST respond in {lang} only. No exceptions.
-  (Pure English question → English. Any Arabic characters present, even mixed → Arabic.)
+  (Hebrew question → Hebrew. Arabic question → Arabic. English question → English.)
 """

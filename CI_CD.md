@@ -15,7 +15,7 @@ Manual trigger
   • Checkout code
   • Install Python dependencies
   • Build Docker image
-  • Push to Docker Hub (pawarmahesh2511/chatbot-app:<sha>)
+  • Push to Docker Hub (pawarakash2511/chatbot-app:<sha>)
       ↓  (auto-triggers on CI success via workflow_run)
  .github/workflows/cd.yml   — Continuous Deployment
   • Copy docker-compose.yml to EC2 via SCP
@@ -79,13 +79,13 @@ Go to: **GitHub repo → Settings → Secrets and variables → Actions → New 
 | `EC2_HOST` | EC2 public IP or hostname | `65.1.135.113` |
 | `EC2_USERNAME` | SSH user | `ec2-user` or `ubuntu` |
 | `EC2_SSH_KEY` | Full contents of `.pem` key file | `-----BEGIN RSA PRIVATE KEY-----...` |
-| `DOCKERHUB_USERNAME` | Docker Hub username | `pawarmahesh2511` |
+| `DOCKERHUB_USERNAME` | Docker Hub username | `pawarakash2511` |
 | `DOCKERHUB_TOKEN` | Docker Hub access token | `dckr_pat_...` |
 | `LLM_PROVIDER` | LLM backend | `groq` |
 | `LLM_MODEL` | Model name | `llama-3.1-8b-instant` |
 | `GROQ_API_KEY` | Groq API key | `gsk_...` |
 | `EMBEDDING_PROVIDER` | Embedding backend | `huggingface` |
-| `EMBEDDING_MODEL` | Embedding model | `all-MiniLM-L6-v2` |
+| `EMBEDDING_MODEL` | Embedding model | `sentence-transformers/paraphrase-multilingual-mpnet-base-v2` |
 
 ### Optional Secrets
 
@@ -171,6 +171,72 @@ The ingest endpoint downloads PDFs directly from S3. The file must be publicly a
 ```
 
 Replace `YOUR-BUCKET-NAME` with your actual bucket name.
+
+---
+
+## Hebrew Language Support — Deployment Steps
+
+The chatbot detects question language and responds in the same language:
+- Hebrew question → Hebrew answer
+- English question → English answer
+- Arabic question → Arabic answer
+
+### GitHub Secret to Update
+
+Go to: **GitHub repo → Settings → Secrets and variables → Actions**
+
+| Secret | Old Value | New Value | Why |
+|--------|-----------|-----------|-----|
+| `EMBEDDING_MODEL` | `all-MiniLM-L6-v2` | `sentence-transformers/paraphrase-multilingual-mpnet-base-v2` | Multilingual model with Hebrew support |
+
+> No other secrets need to change. Groq `llama-3.1-8b-instant` already supports Hebrew natively.
+
+### Deployment Steps
+
+1. **Update the GitHub Secret**
+   - Go to **GitHub repo → Settings → Secrets and variables → Actions**
+   - Click `EMBEDDING_MODEL` → **Edit**
+   - Change value to: `sentence-transformers/paraphrase-multilingual-mpnet-base-v2`
+   - Click **Save**
+
+2. **Re-run CI to rebuild and push the new Docker image**
+   - Go to **GitHub → Actions → CI Pipeline**
+   - Click **Run workflow → Run workflow**
+   - Wait for CI to complete (~3–5 min) — it builds the image with the updated code
+
+3. **CD triggers automatically**
+   - CD runs after CI succeeds (~2–3 min)
+   - It SSHs into EC2, pulls the new image, restarts containers, and runs a health check
+
+4. **Verify deployment**
+   ```bash
+   curl http://<EC2_HOST>:8000/health
+   # Expected: {"status":"ok"}
+   ```
+
+5. **Test Hebrew support**
+   ```bash
+   # Ingest a Hebrew PDF first
+   curl -X POST http://<EC2_HOST>:8000/api/ingest \
+     -H "Content-Type: application/json" \
+     -d '{"file_name": "hebrew-doc", "s3_url": "https://your-bucket.s3.amazonaws.com/hebrew.pdf"}'
+
+   # Ask in Hebrew — should respond in Hebrew
+   curl -X POST http://<EC2_HOST>:8000/api/chat \
+     -H "Content-Type: application/json" \
+     -H "X-User-ID: user1" \
+     -d '{"q": "מה המדיניות של החברה?"}'
+
+   # Ask in English — should respond in English
+   curl -X POST http://<EC2_HOST>:8000/api/chat \
+     -H "Content-Type: application/json" \
+     -H "X-User-ID: user2" \
+     -d '{"q": "What is the company policy?"}'
+   ```
+
+### Note on First Boot After Model Change
+
+The first startup after changing `EMBEDDING_MODEL` will download the multilingual model (~420 MB). This happens once and is cached. Expect a slightly longer first boot (~60–90 seconds). The health check retries handle this automatically.
 
 ---
 

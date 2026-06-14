@@ -62,7 +62,7 @@ jobs:
             EOF
 
             # Pull the image built by CI
-            docker pull pawarmahesh2511/chatbot-app:${IMAGE_TAG}
+            docker pull pawarakash2511/chatbot-app:${IMAGE_TAG}
 
             # Restart containers with the new image
             IMAGE_TAG=${IMAGE_TAG} docker-compose down
