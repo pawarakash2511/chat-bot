@@ -136,11 +136,35 @@ After updating, re-run the CI pipeline to redeploy.
 
 ---
 
+### 5. `ingest/policies.py` — Hebrew PDF Text Extraction Fix
+
+**What changed:** `_clean_text()` now detects and fixes two types of broken Hebrew PDF text before storing in ChromaDB.
+
+Two new helper functions added:
+
+```python
+def _fix_hebrew_visual_order(text):
+    # Reverses each Hebrew line character-by-character
+    # Fixes PDFs where text is stored in visual/display order
+    # e.g. 'לארשיב סמה יללכ' → 'כללי המס בישראל'
+
+def _fix_hebrew_encoding(text):
+    # Re-encodes Latin-1 bytes as CP1255 (Windows Hebrew)
+    # Fixes PDFs where Hebrew was mis-decoded as Latin-1
+    # e.g. 'îàú òå"ã' → 'מאת עו"ד'
+```
+
+Auto-detection logic in `_clean_text()`:
+- Contains Hebrew Unicode chars → apply visual order fix
+- Contains Latin special chars pattern (`îàú` etc.) → apply encoding fix
+- Otherwise → unchanged (English PDFs unaffected)
+
+---
+
 ## No Changes Required In
 
 | Component | Reason |
 |-----------|--------|
-| `ingest/policies.py` | `PyPDFLoader` reads Hebrew UTF-8 text correctly |
 | `db/vector.py` | ChromaDB similarity search is embedding-space agnostic |
 | `graph/nodes/retrieve_context.py` | Cosine similarity works for any language |
 | `utils/llm_adapter.py` | Groq `llama-3.1-8b-instant` supports Hebrew natively |
@@ -181,3 +205,57 @@ curl -X POST http://localhost:8000/api/chat \
 ```
 
 Both responses should be in Hebrew.
+
+---
+
+## Troubleshooting
+
+### Health check failed after 10 attempts on first deploy
+**Cause:** Multilingual model `paraphrase-multilingual-mpnet-base-v2` (420MB) too large for 2GB EC2 — workers dying during model download due to OOM.
+**Fix:** Switch to smaller model in GitHub Secret:
+```
+EMBEDDING_MODEL = sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+```
+Then redeploy. This model is 120MB, needs ~300MB RAM — fits comfortably on 2GB EC2.
+
+---
+
+### Hebrew PDF retrieval returns reversed words (e.g. `לארשיב ליגרה`)
+**Cause:** One or more of:
+1. Old Docker image running — `ingest/policies.py` fix not yet deployed
+2. ChromaDB still has old reversed-text vectors from previous ingest
+3. Redis still holds the file hash → re-ingest silently skipped as duplicate
+
+**Fix (run in order):**
+```bash
+# 1. Push code and trigger CI/CD first — ensure new image is deployed
+# 2. Clear Redis file hash registry
+docker exec chatbot-redis-1 redis-cli DEL ingested_file_hashes
+
+# 3. Clear ChromaDB vectors
+cd ~/chatbot
+docker-compose down
+sudo rm -rf ~/chatbot/chroma_db
+docker-compose up -d
+
+# 4. Re-ingest the Hebrew PDF via UI or API
+```
+
+---
+
+### "Already ingested" message even after clearing ChromaDB
+**Cause:** ChromaDB was cleared but Redis `ingested_file_hashes` set still holds the SHA-256 hash of the PDF.
+**Fix:**
+```bash
+docker exec chatbot-redis-1 redis-cli DEL ingested_file_hashes
+```
+Then re-ingest.
+
+---
+
+### Two Hebrew PDF encoding types — both now handled automatically
+
+| Type | Symptom | Root Cause | Auto-Fix |
+|------|---------|-----------|----------|
+| Visual order | Words readable but in wrong order | PDF stores RTL text in display order | `_fix_hebrew_visual_order()` |
+| CP1255 mis-decode | Garbled chars like `îàú òå"ã` | Hebrew CP1255 bytes decoded as Latin-1 | `_fix_hebrew_encoding()` |
