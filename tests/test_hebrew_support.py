@@ -15,7 +15,6 @@ from graph.nodes.summarize import _summary_language
 from prompts.answer import build_answer_prompt
 from prompts.summarize import build_summarize_prompt
 
-
 # ---------------------------------------------------------------------------
 # _response_language — question language detection
 # ---------------------------------------------------------------------------

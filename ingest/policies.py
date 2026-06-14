@@ -17,8 +17,43 @@ logger = logging.getLogger(__name__)
 # Redis set key that tracks all ingested file hashes for duplicate detection
 _INGESTED_HASHES_KEY = "ingested_file_hashes"
 
+# Hebrew Unicode block U+0590–U+05FF
+_HEBREW_UNICODE_RE = re.compile(r'[֐-׿]')
+# Latin-1 characters that appear when Hebrew CP1255 bytes are mis-decoded as Latin-1
+_GARBLED_HEBREW_RE = re.compile(r'[àáâãäåæçèéêëìíîïðñòóôõöøùú]{2,}')
+
+
+def _fix_hebrew_visual_order(text: str) -> str:
+    """
+    Fix Hebrew PDFs stored in visual (right-to-left display) order.
+    PyPDFLoader extracts these with each line's characters reversed.
+    Reversing each Hebrew line restores correct logical reading order.
+    e.g. 'לארשיב סמה יללכ' → 'כללי המס בישראל'
+    """
+    lines = text.split('\n')
+    return '\n'.join(
+        line[::-1] if _HEBREW_UNICODE_RE.search(line) else line
+        for line in lines
+    )
+
+
+def _fix_hebrew_encoding(text: str) -> str:
+    """
+    Fix Hebrew PDFs where text was encoded in CP1255 (Windows Hebrew) but
+    PyPDFLoader decoded it as Latin-1, producing garbled characters.
+    e.g. 'îàú òå"ã' → 'מאת עו"ד'
+    """
+    try:
+        return text.encode('latin-1').decode('cp1255')
+    except (UnicodeEncodeError, UnicodeDecodeError):
+        return text
+
 
 def _clean_text(text: str) -> str:
+    if _HEBREW_UNICODE_RE.search(text):
+        text = _fix_hebrew_visual_order(text)
+    elif _GARBLED_HEBREW_RE.search(text):
+        text = _fix_hebrew_encoding(text)
     text = re.sub(r'\n+', '\n', text)
     text = re.sub(r'\s+', ' ', text)
     return text.strip()
