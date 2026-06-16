@@ -26,9 +26,7 @@ def _fix_hebrew_encoding(text: str) -> str:
 
 
 def _clean_text(text: str) -> str:
-    if _HEBREW_UNICODE_RE.search(text):
-        text = _fix_hebrew_visual_order(text)
-    elif _GARBLED_HEBREW_RE.search(text):
+    if _GARBLED_HEBREW_RE.search(text) and not _HEBREW_UNICODE_RE.search(text):
         text = _fix_hebrew_encoding(text)
     text = re.sub(r'\n+', '\n', text)
     text = re.sub(r'\s+', ' ', text)
@@ -97,15 +95,23 @@ def test_encoding_fix_preserves_ascii():
 # _clean_text — auto-detection
 # ---------------------------------------------------------------------------
 
-def test_clean_text_auto_detects_visual_order():
-    result = _clean_text('לארשיב סמה יללכ')
-    assert 'בישראל' in result
-    assert 'כללי' in result
+def test_clean_text_does_not_reverse_hebrew_unicode():
+    # Modern PyPDFLoader already outputs correct logical-order Hebrew — no reversal applied
+    text = 'כללי המס בישראל'
+    result = _clean_text(text)
+    assert result == 'כללי המס בישראל'
 
 def test_clean_text_auto_detects_encoding():
+    # Encoding fix only triggers when garbled Latin-1 chars present AND no Hebrew Unicode
     result = _clean_text('îàú òå"ã')
     assert 'מאת' in result
     assert 'עו"ד' in result
+
+def test_clean_text_encoding_skipped_when_hebrew_unicode_present():
+    # If real Hebrew Unicode is present alongside garbled chars, skip encoding fix
+    # (PyPDFLoader already decoded it correctly)
+    result = _clean_text('כללי îàú')
+    assert 'כללי' in result
 
 def test_clean_text_english_unchanged():
     assert _clean_text('  Hello   world  ') == 'Hello world'

@@ -50,9 +50,9 @@ def _fix_hebrew_encoding(text: str) -> str:
 
 
 def _clean_text(text: str) -> str:
-    if _HEBREW_UNICODE_RE.search(text):
-        text = _fix_hebrew_visual_order(text)
-    elif _GARBLED_HEBREW_RE.search(text):
+    # Modern PyPDFLoader extracts Hebrew Unicode in correct logical order already.
+    # Only apply encoding fix for genuine Latin-1/CP1255 mismatch (no Hebrew Unicode present).
+    if _GARBLED_HEBREW_RE.search(text) and not _HEBREW_UNICODE_RE.search(text):
         text = _fix_hebrew_encoding(text)
     text = re.sub(r'\n+', '\n', text)
     text = re.sub(r'\s+', ' ', text)
