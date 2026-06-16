@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 @lru_cache
 def _get_chat():
-    return get_llm(temperature=0, max_tokens=300)
+    return get_llm(temperature=0, max_tokens=200)
 
 
 def _response_language(question: str) -> str:
