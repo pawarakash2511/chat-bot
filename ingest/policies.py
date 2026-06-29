@@ -110,7 +110,20 @@ def process_policy(file_name: str, s3_url: str):
         # Check if the file hash already exists in the Redis set. If it does, it means the file has already been ingested, and we can skip processing it again. This helps to avoid duplicate entries in the vector store and saves resources by not reprocessing the same content.
         # The sismember command checks if the file hash is a member of the Redis set identified by _INGESTED_HASHES_KEY. If it returns true, we log that the file is being skipped due to duplicate content and return a response indicating that the file was skipped along with the reason.
         if redis.sismember(_INGESTED_HASHES_KEY, fhash):
-            logger.info("Skipping duplicate file: %s", file_name)
+            logger.info("Skipping duplicate file: %s (Redis)", file_name)
+            return {
+                "file_name": file_name,
+                "status": "skipped",
+                "reason": "duplicate content",
+            }
+
+        # Fallback: check ChromaDB metadata in case Redis was flushed
+        existing = get_vectorstore()._collection.get(
+            where={"file_hash": fhash}, limit=1
+        )
+        if existing["ids"]:
+            redis.sadd(_INGESTED_HASHES_KEY, fhash)  # restore missing Redis entry
+            logger.info("Skipping duplicate file: %s (ChromaDB)", file_name)
             return {
                 "file_name": file_name,
                 "status": "skipped",
