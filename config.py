@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     # Azure OpenAI
     azure_openai_api_key: str = ""
     azure_openai_endpoint: str = ""
-    azure_openai_api_version: str = "2025-08-07"
+    azure_openai_api_version: str = "2025-01-01-preview"
     azure_deployment_name: str = "gpt-5-mini"
 
     # Embeddings
