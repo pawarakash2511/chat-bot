@@ -61,6 +61,9 @@ async def stream_conversation(user_id: str, q: str) -> AsyncGenerator[str, None]
     """Streams answer tokens as SSE events, bypassing LangGraph for token-level streaming."""
     import asyncio
     full_response = ""
+    messages, summary = [], ""
+    lang = "English"
+    relevant = []
     try:
         messages, summary = _load_redis_memory(user_id)
 
