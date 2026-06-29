@@ -141,6 +141,15 @@ def process_policy(file_name: str, s3_url: str):
 
         splitter = CharacterTextSplitter(chunk_size=500, chunk_overlap=50)
         chunks = splitter.split_documents(pages_clean)
+        chunks = [c for c in chunks if c.page_content.strip()]
+
+        if not chunks:
+            logger.warning("No valid text extracted from %s", file_name)
+            return {
+                "file_name": file_name,
+                "status": "skipped",
+                "reason": "no extractable text",
+            }
 
         get_vectorstore().add_documents(chunks)
         redis.sadd(_INGESTED_HASHES_KEY, fhash)
