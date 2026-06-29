@@ -380,20 +380,21 @@
         buf = lines.pop();
         for (const line of lines) {
           if (!line.startsWith('data: ')) continue;
-          try {
-            const p = JSON.parse(line.slice(6));
-            if (p.token) {
-              if (!typingRemoved) { removeTyping(); typingRemoved = true; createBubble(); }
-              full += p.token; sb.textContent = full; c.scrollTop = c.scrollHeight;
-            }
-            else if (p.done) {
-              if (!typingRemoved) { removeTyping(); typingRemoved = true; }
-            }
-            else if (p.error) {
-              if (!typingRemoved) { removeTyping(); typingRemoved = true; createBubble(); }
-              if (sb) sb.textContent = p.error;
-            }
-          } catch {}
+          let p;
+          try { p = JSON.parse(line.slice(6)); } catch { continue; }
+          if (p.token) {
+            if (!typingRemoved) { removeTyping(); typingRemoved = true; createBubble(); }
+            full += p.token; sb.textContent = full; c.scrollTop = c.scrollHeight;
+          }
+          else if (p.done) {
+            if (!typingRemoved) { removeTyping(); typingRemoved = true; }
+            if (!full) { createBubble(); sb.textContent = 'No response received. Please try again.'; }
+          }
+          else if (p.error) {
+            if (!typingRemoved) { removeTyping(); typingRemoved = true; }
+            if (!msgDiv) createBubble();
+            sb.textContent = p.error;
+          }
         }
       }
       if (sb) sb.removeAttribute('id');

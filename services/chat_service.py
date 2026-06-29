@@ -99,11 +99,15 @@ async def stream_conversation(user_id: str, q: str) -> AsyncGenerator[str, None]
         )
 
         llm = get_llm(temperature=0, max_tokens=600)
+        logger.info("LLM stream starting for user %s", user_id)
+        token_count = 0
         async for chunk in llm.astream(prompt):
             token = chunk.content
             if token:
+                token_count += 1
                 full_response += token
                 yield f"data: {json.dumps({'token': token})}\n\n"
+        logger.info("LLM stream done for user %s: %d tokens", user_id, token_count)
 
     except Exception:
         logger.exception("Streaming error for user %s", user_id)
