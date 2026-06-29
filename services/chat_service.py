@@ -109,6 +109,16 @@ async def stream_conversation(user_id: str, q: str) -> AsyncGenerator[str, None]
                 yield f"data: {json.dumps({'token': token})}\n\n"
         logger.info("LLM stream done for user %s: %d tokens", user_id, token_count)
 
+        if not full_response:
+            logger.warning("0-token stream for user %s, retrying with invoke()", user_id)
+            response = await loop.run_in_executor(None, lambda: llm.invoke(prompt))
+            full_response = response.content or ""
+            if full_response:
+                yield f"data: {json.dumps({'token': full_response})}\n\n"
+                logger.info("Invoke fallback succeeded for user %s: %d chars", user_id, len(full_response))
+            else:
+                logger.error("Invoke fallback also returned empty for user %s", user_id)
+
     except Exception:
         logger.exception("Streaming error for user %s", user_id)
         yield f"data: {json.dumps({'error': 'An error occurred during response generation.'})}\n\n"
