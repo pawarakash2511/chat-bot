@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 graph = build_graph()
 
-_RELEVANCE_THRESHOLD = 0.3
+_RELEVANCE_THRESHOLD = 0.1
 
 
 def conversation(user_id: str, q: str) -> str:
@@ -62,6 +62,8 @@ async def stream_conversation(user_id: str, q: str) -> AsyncGenerator[str, None]
     messages, summary = _load_redis_memory(user_id)
 
     results = get_vectorstore().similarity_search_with_relevance_scores(q, k=6)
+    for doc, score in results:
+        logger.info("Doc score=%.4f source=%s", score, doc.metadata.get("source_file", "?"))
     relevant = [(doc, score) for doc, score in results if score >= _RELEVANCE_THRESHOLD]
 
     chunks = []
