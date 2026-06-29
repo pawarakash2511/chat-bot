@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 graph = build_graph()
 
-_RELEVANCE_THRESHOLD = 0.1
+_RELEVANCE_THRESHOLD = 0.3
 
 
 def conversation(user_id: str, q: str) -> str:

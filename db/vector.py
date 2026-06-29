@@ -15,6 +15,7 @@ def get_vectorstore() -> Chroma:
         client=client,
         collection_name=setting.chroma_collection,
         embedding_function=get_embeddings(),
+        collection_metadata={"hnsw:space": "cosine"},
     )
 
 

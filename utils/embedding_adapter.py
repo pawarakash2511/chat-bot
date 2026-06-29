@@ -15,7 +15,10 @@ def get_embeddings():
 
     elif provider == "huggingface":
         from langchain_huggingface import HuggingFaceEmbeddings
-        return HuggingFaceEmbeddings(model_name=model)
+        return HuggingFaceEmbeddings(
+            model_name=model,
+            encode_kwargs={"normalize_embeddings": True},
+        )
 
     else:
         raise ValueError(f"Unsupported EMBEDDING_PROVIDER: {provider}")
