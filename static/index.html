@@ -355,15 +355,18 @@
       if (!res.ok) { removeTyping(); appendMessage('error','Server error. Please try again.'); return; }
 
       const c = document.getElementById('messages');
-      const msgDiv = document.createElement('div');
-      msgDiv.className = 'msg bot';
-      msgDiv.innerHTML = `<div class="msg-row"><div class="avatar">RB</div><div class="bubble" id="sb" dir="auto"></div></div><div class="msg-meta" id="sm"><span class="msg-time">${now()}</span></div>`;
-      c.appendChild(msgDiv);
-
-      const sb = document.getElementById('sb');
-      const sm = document.getElementById('sm');
+      let msgDiv = null, sb = null, sm = null;
       let full = '';
       let typingRemoved = false;
+
+      function createBubble() {
+        msgDiv = document.createElement('div');
+        msgDiv.className = 'msg bot';
+        msgDiv.innerHTML = `<div class="msg-row"><div class="avatar">RB</div><div class="bubble" id="sb" dir="auto"></div></div><div class="msg-meta" id="sm"><span class="msg-time">${now()}</span></div>`;
+        c.appendChild(msgDiv);
+        sb = document.getElementById('sb');
+        sm = document.getElementById('sm');
+      }
 
       const reader = res.body.getReader();
       const dec = new TextDecoder();
@@ -380,20 +383,21 @@
           try {
             const p = JSON.parse(line.slice(6));
             if (p.token) {
-              if (!typingRemoved) { removeTyping(); typingRemoved = true; }
+              if (!typingRemoved) { removeTyping(); typingRemoved = true; createBubble(); }
               full += p.token; sb.textContent = full; c.scrollTop = c.scrollHeight;
             }
             else if (p.done) {
               if (!typingRemoved) { removeTyping(); typingRemoved = true; }
             }
             else if (p.error) {
-              if (!typingRemoved) { removeTyping(); typingRemoved = true; }
-              sb.textContent = p.error;
+              if (!typingRemoved) { removeTyping(); typingRemoved = true; createBubble(); }
+              if (sb) sb.textContent = p.error;
             }
           } catch {}
         }
       }
-      sb.removeAttribute('id'); sm.removeAttribute('id');
+      if (sb) sb.removeAttribute('id');
+      if (sm) sm.removeAttribute('id');
     } catch(e) {
       removeTyping();
       appendMessage('error','Network error: '+e.message);
