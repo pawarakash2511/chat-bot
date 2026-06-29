@@ -25,7 +25,6 @@ def get_llm(temperature: float = 0, max_tokens: int = 1000):
             azure_endpoint=setting.azure_openai_endpoint,
             api_key=setting.azure_openai_api_key,
             api_version=setting.azure_openai_api_version,
-            temperature=temperature,
             max_tokens=max_tokens,
         )
 
