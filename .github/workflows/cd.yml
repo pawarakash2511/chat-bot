@@ -43,8 +43,10 @@ jobs:
             # Generate .env from secrets
             cat <<EOF > .env
             LLM_PROVIDER=${{ secrets.LLM_PROVIDER }}
-            LLM_MODEL=${{ secrets.LLM_MODEL }}
-            GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
+            AZURE_OPENAI_API_KEY=${{ secrets.AZURE_OPENAI_API_KEY }}
+            AZURE_OPENAI_ENDPOINT=${{ secrets.AZURE_OPENAI_ENDPOINT }}
+            AZURE_OPENAI_API_VERSION=${{ secrets.AZURE_OPENAI_API_VERSION }}
+            AZURE_DEPLOYMENT_NAME=${{ secrets.AZURE_DEPLOYMENT_NAME }}
             EMBEDDING_PROVIDER=${{ secrets.EMBEDDING_PROVIDER }}
             EMBEDDING_MODEL=${{ secrets.EMBEDDING_MODEL }}
             REDIS_HOST=redis

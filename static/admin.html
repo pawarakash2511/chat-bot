@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Knowledge Base · RONEN BARAK CPA ChatBot</title>
+  <style>
+    :root {
+      --primary: #1B2B4B; --primary-dark: #131f36;
+      --accent: #C9A84C; --accent-hover: #b8943f;
+      --bg: #F4F6FA; --surface: #FFFFFF; --surface2: #EEF1F7;
+      --border: #DDE2EE; --text: #1a1f2e; --text-muted: #6b7280; --text-light: #9ca3af;
+      --success-bg: #f0fdf4; --success: #16a34a;
+      --error-bg: #fef2f2; --error: #dc2626;
+      --shadow: 0 2px 12px rgba(27,43,75,0.10); --shadow-lg: 0 8px 32px rgba(27,43,75,0.14);
+      --radius: 12px; --radius-sm: 8px;
+    }
+    [data-theme="dark"] {
+      --primary: #C9A84C; --primary-dark: #b8943f;
+      --accent: #C9A84C; --accent-hover: #d4b460;
+      --bg: #0f1623; --surface: #1a2235; --surface2: #212d42;
+      --border: #2d3a52; --text: #e8eaf0; --text-muted: #8892a4; --text-light: #5a6478;
+      --success-bg: #052e16; --success: #4ade80;
+      --error-bg: #2d1515; --error: #f87171;
+      --shadow: 0 2px 12px rgba(0,0,0,0.4); --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; transition: background 0.3s,color 0.3s; }
+
+    /* Header */
+    .header { background: var(--primary); color: white; padding: 0 24px; height: 60px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow); }
+    [data-theme="dark"] .header { background: var(--surface); border-bottom: 1px solid var(--border); }
+    .header-brand { display: flex; align-items: center; gap: 12px; }
+    .header-logo { width: 36px; height: 36px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; color: #1B2B4B; }
+    [data-theme="dark"] .header-logo { background: var(--primary-dark); color: var(--accent); border: 2px solid var(--accent); }
+    .header-title { font-size: 16px; font-weight: 600; }
+    .header-subtitle { font-size: 11px; opacity: 0.7; margin-top: 1px; }
+    .header-actions { display: flex; gap: 10px; }
+    .btn-header { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 8px; padding: 6px 14px; font-size: 13px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s; white-space: nowrap; }
+    .btn-header:hover { background: rgba(255,255,255,0.22); }
+    [data-theme="dark"] .btn-header { background: rgba(201,168,76,0.12); border-color: rgba(201,168,76,0.3); color: var(--accent); }
+    [data-theme="dark"] .btn-header:hover { background: rgba(201,168,76,0.22); }
+
+    /* Page */
+    .page { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+    .page-title { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+    .page-desc { font-size: 14px; color: var(--text-muted); margin-bottom: 28px; }
+
+    /* Grid */
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
+
+    /* Card */
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
+    .card-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+    .card-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5; }
+
+    /* Form */
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 13px; font-weight: 500; color: var(--text-muted); margin-bottom: 6px; }
+    .form-input {
+      width: 100%; padding: 10px 14px; border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm); font-size: 14px; font-family: inherit;
+      background: var(--bg); color: var(--text); outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-input:focus { border-color: #1B2B4B; box-shadow: 0 0 0 3px rgba(27,43,75,0.1); }
+    [data-theme="dark"] .form-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(201,168,76,0.15); }
+    .form-input::placeholder { color: var(--text-light); }
+
+    .btn-primary {
+      width: 100%; padding: 11px; background: #1B2B4B; color: white;
+      border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: background 0.2s, transform 0.15s; margin-top: 4px;
+    }
+    .btn-primary:hover:not(:disabled) { background: #131f36; transform: translateY(-1px); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    [data-theme="dark"] .btn-primary { background: var(--accent); color: #1B2B4B; }
+    [data-theme="dark"] .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+
+    /* Progress */
+    .progress-bar { height: 4px; background: var(--border); border-radius: 4px; overflow: hidden; margin-top: 12px; display: none; }
+    .progress-bar.visible { display: block; }
+    .progress-fill { height: 100%; background: var(--accent); border-radius: 4px; animation: indeterminate 1.5s infinite; transform-origin: left; }
+    @keyframes indeterminate { 0%{transform:scaleX(0) translateX(0);} 50%{transform:scaleX(0.5) translateX(100%);} 100%{transform:scaleX(0) translateX(300%);} }
+
+    /* Status */
+    .status-msg { margin-top: 14px; padding: 12px 14px; border-radius: var(--radius-sm); font-size: 13px; display: none; line-height: 1.5; }
+    .status-msg.success { display: block; background: var(--success-bg); color: var(--success); border: 1px solid rgba(22,163,74,0.2); }
+    .status-msg.error   { display: block; background: var(--error-bg); color: var(--error); border: 1px solid rgba(220,38,38,0.2); }
+
+    /* Document list */
+    .doc-list { display: flex; flex-direction: column; gap: 10px; }
+    .doc-item {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 12px 16px;
+      transition: border-color 0.2s;
+    }
+    .doc-item:hover { border-color: var(--accent); }
+    .doc-info { flex: 1; min-width: 0; }
+    .doc-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .doc-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .doc-badge {
+      font-size: 11px; font-weight: 700; padding: 3px 8px;
+      background: rgba(201,168,76,0.15); color: var(--accent); border-radius: 20px;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+    .empty-state .empty-icon { font-size: 36px; margin-bottom: 12px; opacity: 0.5; }
+    .empty-state p { font-size: 13px; }
+
+    /* Stats */
+    .stats-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 20px; }
+    .stat-card { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; text-align: center; }
+    .stat-value { font-size: 22px; font-weight: 700; color: var(--accent); }
+    .stat-label { font-size: 11px; color: var(--text-muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-brand">
+    <div class="header-logo">RB</div>
+    <div>
+      <div class="header-title">Knowledge Base</div>
+      <div class="header-subtitle">RONEN BARAK CPA ChatBot</div>
+    </div>
+  </div>
+  <div class="header-actions">
+    <a href="/index.html" class="btn-header">💬 Back to Chat</a>
+    <button class="btn-header" onclick="toggleTheme()" id="themeBtn">🌙</button>
+  </div>
+</header>
+
+<div class="page">
+  <div class="page-title">📚 Knowledge Base Management</div>
+  <p class="page-desc">Upload and manage PDF documents. The chatbot will answer questions based on these documents.</p>
+
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat-card"><div class="stat-value" id="statDocs">0</div><div class="stat-label">Documents</div></div>
+    <div class="stat-card"><div class="stat-value" id="statPages">0</div><div class="stat-label">Total Pages</div></div>
+    <div class="stat-card"><div class="stat-value" id="statChunks">0</div><div class="stat-label">Indexed Chunks</div></div>
+  </div>
+
+  <div class="grid">
+    <!-- Ingest form -->
+    <div class="card">
+      <div class="card-title">➕ Add Document</div>
+      <p class="card-desc">Provide a document name and an S3 URL to a PDF file. The system will download, process, and index it for semantic search.</p>
+
+      <div class="form-group">
+        <label class="form-label" for="fileName">Document Name</label>
+        <input id="fileName" class="form-input" type="text" placeholder="e.g. tax-rules-2024" autocomplete="off" />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="s3Url">S3 URL (PDF)</label>
+        <input id="s3Url" class="form-input" type="url" placeholder="https://bucket.s3.amazonaws.com/file.pdf" />
+      </div>
+
+      <button class="btn-primary" id="ingestBtn" onclick="ingestFile()">Ingest Document</button>
+
+      <div class="progress-bar" id="progressBar"><div class="progress-fill"></div></div>
+      <div class="status-msg" id="statusMsg"></div>
+    </div>
+
+    <!-- Document list -->
+    <div class="card">
+      <div class="card-title">📄 Ingested Documents</div>
+      <p class="card-desc">Documents currently indexed in the knowledge base. The chatbot uses these to answer questions.</p>
+      <div class="doc-list" id="docList"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function toggleTheme() {
+    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    document.getElementById('themeBtn').textContent = next === 'dark' ? '☀️' : '🌙';
+    localStorage.setItem('rb_theme', next);
+  }
+  (function() {
+    const t = localStorage.getItem('rb_theme') || 'light';
+    document.documentElement.setAttribute('data-theme', t);
+    document.getElementById('themeBtn').textContent = t === 'dark' ? '☀️' : '🌙';
+  })();
+
+  function loadDocs() {
+    const docs = JSON.parse(localStorage.getItem('rb_docs') || '[]');
+    const list = document.getElementById('docList');
+    const totalPages = docs.reduce((s,d) => s + (d.pages||0), 0);
+    const totalChunks = docs.reduce((s,d) => s + (d.chunks||0), 0);
+    document.getElementById('statDocs').textContent = docs.length;
+    document.getElementById('statPages').textContent = totalPages;
+    document.getElementById('statChunks').textContent = totalChunks;
+
+    if (!docs.length) {
+      list.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><p>No documents ingested yet.<br>Add your first PDF using the form.</p></div>`;
+      return;
+    }
+    list.innerHTML = docs.map((d,i) => `
+      <div class="doc-item">
+        <div class="doc-info">
+          <div class="doc-name" title="${d.name}">${d.name}</div>
+          <div class="doc-meta">${d.pages || 0} pages · ${d.chunks || 0} chunks · ${d.date || ''}</div>
+        </div>
+        <span class="doc-badge">✓ Indexed</span>
+      </div>`).join('');
+  }
+
+  function addDoc(name, pages, chunks) {
+    const docs = JSON.parse(localStorage.getItem('rb_docs') || '[]');
+    docs.unshift({ name, pages, chunks, date: new Date().toLocaleDateString() });
+    localStorage.setItem('rb_docs', JSON.stringify(docs));
+    loadDocs();
+  }
+
+  function showStatus(type, msg) {
+    const el = document.getElementById('statusMsg');
+    el.className = `status-msg ${type}`;
+    el.textContent = (type === 'success' ? '✓ ' : '✗ ') + msg;
+  }
+
+  async function ingestFile() {
+    const name = document.getElementById('fileName').value.trim();
+    const url = document.getElementById('s3Url').value.trim();
+    if (!name || !url) { showStatus('error', 'Please fill in both fields.'); return; }
+
+    const btn = document.getElementById('ingestBtn');
+    const bar = document.getElementById('progressBar');
+    btn.disabled = true;
+    btn.textContent = 'Ingesting…';
+    bar.classList.add('visible');
+    document.getElementById('statusMsg').className = 'status-msg';
+
+    try {
+      const res = await fetch('/api/ingest', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({file_name: name, s3_url: url}),
+      });
+      const json = await res.json();
+
+      if (!res.ok) {
+        const msg = json.details?.map(d => d.message).join(', ') || json.detail || 'Ingest failed';
+        throw new Error(msg);
+      }
+
+      const d = json.data;
+      if (d.status === 'skipped') {
+        showStatus('success', `"${name}" was already ingested (duplicate content detected).`);
+      } else {
+        showStatus('success', `"${name}" ingested successfully — ${d.num_pages} pages, ${d.num_chunks} chunks indexed.`);
+        addDoc(name, d.num_pages, d.num_chunks);
+        document.getElementById('fileName').value = '';
+        document.getElementById('s3Url').value = '';
+      }
+    } catch (e) {
+      showStatus('error', e.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Ingest Document';
+      bar.classList.remove('visible');
+    }
+  }
+
+  loadDocs();
+</script>
+</body>
+</html>

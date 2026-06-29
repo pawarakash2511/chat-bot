@@ -126,7 +126,7 @@ def process_policy(file_name: str, s3_url: str):
             doc.metadata["source_file"] = file_name
             doc.metadata["file_hash"] = fhash
 
-        splitter = CharacterTextSplitter(chunk_size=150, chunk_overlap=20)
+        splitter = CharacterTextSplitter(chunk_size=500, chunk_overlap=50)
         chunks = splitter.split_documents(pages_clean)
 
         get_vectorstore().add_documents(chunks)
