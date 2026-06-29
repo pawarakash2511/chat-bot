@@ -4,7 +4,7 @@ from db.vector import get_vectorstore
 
 logger = logging.getLogger(__name__)
 
-_RELEVANCE_THRESHOLD = 0.3
+_RELEVANCE_THRESHOLD = 0.2
 
 
 def retrieve_context(state):

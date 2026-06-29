@@ -352,8 +352,7 @@
         headers: {'Content-Type':'application/json','X-User-ID':getUserId()},
         body: JSON.stringify({q}),
       });
-      removeTyping();
-      if (!res.ok) { appendMessage('error','Server error. Please try again.'); return; }
+      if (!res.ok) { removeTyping(); appendMessage('error','Server error. Please try again.'); return; }
 
       const c = document.getElementById('messages');
       const msgDiv = document.createElement('div');
@@ -364,6 +363,7 @@
       const sb = document.getElementById('sb');
       const sm = document.getElementById('sm');
       let full = '';
+      let typingRemoved = false;
 
       const reader = res.body.getReader();
       const dec = new TextDecoder();
@@ -379,7 +379,10 @@
           if (!line.startsWith('data: ')) continue;
           try {
             const p = JSON.parse(line.slice(6));
-            if (p.token) { full += p.token; sb.textContent = full; c.scrollTop = c.scrollHeight; }
+            if (p.token) {
+              if (!typingRemoved) { removeTyping(); typingRemoved = true; }
+              full += p.token; sb.textContent = full; c.scrollTop = c.scrollHeight;
+            }
             else if (p.done) {
               const m = full.match(/\(Source:\s*([^)]+)\)/i);
               if (m) sm.innerHTML += `<span class="citation">📄 ${esc(m[1].trim())}</span>`;

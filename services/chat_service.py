@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 graph = build_graph()
 
-_RELEVANCE_THRESHOLD = 0.3
+_RELEVANCE_THRESHOLD = 0.2
 
 
 def conversation(user_id: str, q: str) -> str:
@@ -59,9 +59,14 @@ def _save_redis_memory(user_id: str, messages: list, summary: str) -> None:
 
 async def stream_conversation(user_id: str, q: str) -> AsyncGenerator[str, None]:
     """Streams answer tokens as SSE events, bypassing LangGraph for token-level streaming."""
+    import asyncio
     messages, summary = _load_redis_memory(user_id)
 
-    results = get_vectorstore().similarity_search_with_relevance_scores(q, k=6)
+    loop = asyncio.get_event_loop()
+    results = await loop.run_in_executor(
+        None,
+        lambda: get_vectorstore().similarity_search_with_relevance_scores(q, k=6),
+    )
     for doc, score in results:
         logger.info("Doc score=%.4f source=%s", score, doc.metadata.get("source_file", "?"))
     relevant = [(doc, score) for doc, score in results if score >= _RELEVANCE_THRESHOLD]
