@@ -12,6 +12,7 @@ from controllers.chat_controller import router as chat_router
 from controllers.ingest_controller import router as ingest_router
 from db.redis_client import get_redis
 from db.vector import get_vectorstore
+from utils.embedding_adapter import get_embeddings
 
 settings = get_settings()
 
@@ -34,6 +35,12 @@ async def lifespan(app: FastAPI):
         logger.info("Redis connected")
     except Exception as e:
         logger.error("Redis connection failed: %s", e)
+
+    try:
+        get_embeddings().embed_query("warmup")
+        logger.info("Embedding model warmed up")
+    except Exception as e:
+        logger.error("Embedding model warmup failed: %s", e)
 
     try:
         get_vectorstore().similarity_search("health", k=1)

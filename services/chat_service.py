@@ -60,53 +60,53 @@ def _save_redis_memory(user_id: str, messages: list, summary: str) -> None:
 async def stream_conversation(user_id: str, q: str) -> AsyncGenerator[str, None]:
     """Streams answer tokens as SSE events, bypassing LangGraph for token-level streaming."""
     import asyncio
-    messages, summary = _load_redis_memory(user_id)
-
-    loop = asyncio.get_event_loop()
-    results = await loop.run_in_executor(
-        None,
-        lambda: get_vectorstore().similarity_search_with_relevance_scores(q, k=6),
-    )
-    for doc, score in results:
-        logger.info("Doc score=%.4f source=%s", score, doc.metadata.get("source_file", "?"))
-    relevant = [(doc, score) for doc, score in results if score >= _RELEVANCE_THRESHOLD]
-
-    chunks = []
-    for doc, _score in relevant:
-        src = doc.metadata.get("source_file", "document")
-        page = doc.metadata.get("page", 0) + 1
-        chunks.append(f"[Source: {src}, Page {page}]\n{doc.page_content}")
-    context = "\n\n".join(chunks)
-
-    lang = _detect_language(q)
-    recent = messages[-6:]
-    history = "\n".join(
-        f"{'User' if isinstance(m, HumanMessage) else 'AI'}: {m.content}"
-        for m in recent
-    )
-
-    prompt = build_answer_prompt(
-        summary=summary,
-        history=history,
-        docs=context,
-        question=q,
-        lang=lang,
-    )
-
-    llm = get_llm(temperature=0, max_tokens=600)
     full_response = ""
     try:
+        messages, summary = _load_redis_memory(user_id)
+
+        loop = asyncio.get_event_loop()
+        results = await loop.run_in_executor(
+            None,
+            lambda: get_vectorstore().similarity_search_with_relevance_scores(q, k=6),
+        )
+        for doc, score in results:
+            logger.info("Doc score=%.4f source=%s", score, doc.metadata.get("source_file", "?"))
+        relevant = [(doc, score) for doc, score in results if score >= _RELEVANCE_THRESHOLD]
+
+        chunks = []
+        for doc, _score in relevant:
+            src = doc.metadata.get("source_file", "document")
+            page = doc.metadata.get("page", 0) + 1
+            chunks.append(f"[Source: {src}, Page {page}]\n{doc.page_content}")
+        context = "\n\n".join(chunks)
+
+        lang = _detect_language(q)
+        recent = messages[-6:]
+        history = "\n".join(
+            f"{'User' if isinstance(m, HumanMessage) else 'AI'}: {m.content}"
+            for m in recent
+        )
+
+        prompt = build_answer_prompt(
+            summary=summary,
+            history=history,
+            docs=context,
+            question=q,
+            lang=lang,
+        )
+
+        llm = get_llm(temperature=0, max_tokens=600)
         async for chunk in llm.astream(prompt):
             token = chunk.content
             if token:
                 full_response += token
                 yield f"data: {json.dumps({'token': token})}\n\n"
-    except Exception as e:
+
+    except Exception:
         logger.exception("Streaming error for user %s", user_id)
         yield f"data: {json.dumps({'error': 'An error occurred during response generation.'})}\n\n"
-        return
-
-    yield f"data: {json.dumps({'done': True})}\n\n"
+    finally:
+        yield f"data: {json.dumps({'done': True})}\n\n"
 
     updated_messages = messages[-6:] + [
         HumanMessage(content=q),

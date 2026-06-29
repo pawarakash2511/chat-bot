@@ -384,8 +384,12 @@
               full += p.token; sb.textContent = full; c.scrollTop = c.scrollHeight;
             }
             else if (p.done) {
+              if (!typingRemoved) { removeTyping(); typingRemoved = true; }
             }
-            else if (p.error) { sb.textContent = p.error; }
+            else if (p.error) {
+              if (!typingRemoved) { removeTyping(); typingRemoved = true; }
+              sb.textContent = p.error;
+            }
           } catch {}
         }
       }
