@@ -384,8 +384,6 @@
               full += p.token; sb.textContent = full; c.scrollTop = c.scrollHeight;
             }
             else if (p.done) {
-              const m = full.match(/\(Source:\s*([^)]+)\)/i);
-              if (m) sm.innerHTML += `<span class="citation">📄 ${esc(m[1].trim())}</span>`;
             }
             else if (p.error) { sb.textContent = p.error; }
           } catch {}
