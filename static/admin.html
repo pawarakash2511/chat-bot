@@ -165,7 +165,10 @@
 
     <!-- Document list -->
     <div class="card">
-      <div class="card-title">📄 Ingested Documents</div>
+      <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;">
+        <span>📄 Ingested Documents</span>
+        <button onclick="clearDisplay()" style="font-size:0.75rem;padding:4px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text-muted);cursor:pointer;" title="Clear this list (does not delete server data)">Reset Display</button>
+      </div>
       <p class="card-desc">Documents currently indexed in the knowledge base. The chatbot uses these to answer questions.</p>
       <div class="doc-list" id="docList"></div>
     </div>
@@ -206,6 +209,11 @@
         </div>
         <span class="doc-badge">✓ Indexed</span>
       </div>`).join('');
+  }
+
+  function clearDisplay() {
+    localStorage.removeItem('rb_docs');
+    loadDocs();
   }
 
   function addDoc(name, pages, chunks) {
