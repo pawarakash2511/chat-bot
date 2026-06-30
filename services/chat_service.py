@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 graph = build_graph()
 
-_RELEVANCE_THRESHOLD = 0.2
+_RELEVANCE_THRESHOLD = 0.15
 _MAX_STREAM_RETRIES = 2
 
 
@@ -71,11 +71,14 @@ async def stream_conversation(user_id: str, q: str) -> AsyncGenerator[str, None]
         loop = asyncio.get_event_loop()
         results = await loop.run_in_executor(
             None,
-            lambda: get_vectorstore().similarity_search_with_relevance_scores(q, k=6),
+            lambda: get_vectorstore().similarity_search_with_relevance_scores(q, k=10),
         )
         for doc, score in results:
             logger.info("Doc score=%.4f source=%s", score, doc.metadata.get("source_file", "?"))
         relevant = [(doc, score) for doc, score in results if score >= _RELEVANCE_THRESHOLD]
+        if not relevant and results:
+            top_score = max(score for _, score in results)
+            logger.warning("0 docs passed threshold for user %s — top score=%.4f", user_id, top_score)
 
         chunks = []
         for doc, _score in relevant:

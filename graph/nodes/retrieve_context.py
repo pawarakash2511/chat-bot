@@ -4,12 +4,12 @@ from db.vector import get_vectorstore
 
 logger = logging.getLogger(__name__)
 
-_RELEVANCE_THRESHOLD = 0.2
+_RELEVANCE_THRESHOLD = 0.15
 
 
 def retrieve_context(state):
     question = state["question"]
-    results = get_vectorstore().similarity_search_with_relevance_scores(question, k=6)
+    results = get_vectorstore().similarity_search_with_relevance_scores(question, k=10)
 
     for doc, score in results:
         logger.info("Doc score=%.4f source=%s", score, doc.metadata.get("source_file", "?"))
