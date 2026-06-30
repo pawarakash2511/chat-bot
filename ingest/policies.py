@@ -139,7 +139,7 @@ def process_policy(file_name: str, s3_url: str):
             doc.metadata["source_file"] = file_name
             doc.metadata["file_hash"] = fhash
 
-        splitter = CharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+        splitter = CharacterTextSplitter(chunk_size=250, chunk_overlap=80)
         chunks = splitter.split_documents(pages_clean)
         chunks = [c for c in chunks if c.page_content.strip()]
 
