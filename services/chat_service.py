@@ -112,12 +112,29 @@ async def stream_conversation(user_id: str, q: str) -> AsyncGenerator[str, None]
         if not full_response:
             logger.warning("0-token stream for user %s, retrying with invoke()", user_id)
             response = await loop.run_in_executor(None, lambda: llm.invoke(prompt))
+            logger.info("Invoke response: content=%r, kwargs=%r", response.content, response.additional_kwargs)
             full_response = response.content or ""
             if full_response:
                 yield f"data: {json.dumps({'token': full_response})}\n\n"
                 logger.info("Invoke fallback succeeded for user %s: %d chars", user_id, len(full_response))
             else:
-                logger.error("Invoke fallback also returned empty for user %s", user_id)
+                logger.warning("Invoke fallback empty for user %s, retrying with simplified prompt", user_id)
+                simple_context = "\n\n".join(doc.page_content for doc, _ in relevant)
+                simple_prompt = build_answer_prompt(
+                    summary=summary,
+                    history=history,
+                    docs=simple_context,
+                    question=q,
+                    lang=lang,
+                )
+                response2 = await loop.run_in_executor(None, lambda: llm.invoke(simple_prompt))
+                logger.info("Simple prompt invoke response: content=%r, kwargs=%r", response2.content, response2.additional_kwargs)
+                full_response = response2.content or ""
+                if full_response:
+                    yield f"data: {json.dumps({'token': full_response})}\n\n"
+                    logger.info("Simple prompt fallback succeeded for user %s: %d chars", user_id, len(full_response))
+                else:
+                    logger.error("All fallbacks returned empty for user %s", user_id)
 
     except Exception:
         logger.exception("Streaming error for user %s", user_id)
