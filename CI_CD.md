@@ -60,9 +60,9 @@ Create a free account at hub.docker.com and generate an access token:
 
 ### 4. LLM API Key
 
-**Free option (recommended)**: Groq — get a free key at `console.groq.com`
+**Production (recommended)**: Azure OpenAI — provision a resource in the Azure Portal and obtain the API key, endpoint, and deployment name.
 
-**Paid option**: OpenAI — add credits at `platform.openai.com/settings/billing`
+**Local dev alternative**: Groq — free key at `console.groq.com`
 
 > Note: OpenAI API billing is separate from ChatGPT subscriptions. A ChatGPT Plus/Pro subscription does NOT give free API access.
 
@@ -81,11 +81,13 @@ Go to: **GitHub repo → Settings → Secrets and variables → Actions → New 
 | `EC2_SSH_KEY` | Full contents of `.pem` key file | `-----BEGIN RSA PRIVATE KEY-----...` |
 | `DOCKERHUB_USERNAME` | Docker Hub username | `pawarakash2511` |
 | `DOCKERHUB_TOKEN` | Docker Hub access token | `dckr_pat_...` |
-| `LLM_PROVIDER` | LLM backend | `groq` |
-| `LLM_MODEL` | Model name | `llama-3.1-8b-instant` |
-| `GROQ_API_KEY` | Groq API key | `gsk_...` |
+| `LLM_PROVIDER` | LLM backend | `azure` |
+| `AZURE_OPENAI_API_KEY` | Azure OpenAI key | `<from Azure Portal>` |
+| `AZURE_OPENAI_ENDPOINT` | Azure resource URL | `https://<resource>.openai.azure.com/` |
+| `AZURE_OPENAI_API_VERSION` | API version | `2025-04-01-preview` |
+| `AZURE_DEPLOYMENT_NAME` | Model deployment name | `gpt-5-mini` |
 | `EMBEDDING_PROVIDER` | Embedding backend | `huggingface` |
-| `EMBEDDING_MODEL` | Embedding model | `sentence-transformers/paraphrase-multilingual-mpnet-base-v2` |
+| `EMBEDDING_MODEL` | Embedding model | `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` |
 
 ### Optional Secrets
 
@@ -181,22 +183,31 @@ The chatbot detects question language and responds in the same language:
 - English question → English answer
 - Arabic question → Arabic answer
 
-### GitHub Secret to Update
+### Current Production Stack
+
+| Secret | Value |
+|--------|-------|
+| `LLM_PROVIDER` | `azure` |
+| `AZURE_DEPLOYMENT_NAME` | `gpt-5-mini` |
+| `EMBEDDING_PROVIDER` | `huggingface` |
+| `EMBEDDING_MODEL` | `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` |
+
+> `paraphrase-multilingual-MiniLM-L12-v2` is 120MB and runs CPU-only on EC2 t3.medium. The larger `mpnet-base-v2` (420MB) caused OOM on 2GB instances.
+
+### GitHub Secret to Update (if migrating from older setup)
 
 Go to: **GitHub repo → Settings → Secrets and variables → Actions**
 
 | Secret | Old Value | New Value | Why |
 |--------|-----------|-----------|-----|
-| `EMBEDDING_MODEL` | `all-MiniLM-L6-v2` | `sentence-transformers/paraphrase-multilingual-mpnet-base-v2` | Multilingual model with Hebrew support |
-
-> No other secrets need to change. Groq `llama-3.1-8b-instant` already supports Hebrew natively.
+| `EMBEDDING_MODEL` | `paraphrase-multilingual-mpnet-base-v2` | `paraphrase-multilingual-MiniLM-L12-v2` | Smaller (120MB vs 420MB), fits EC2 t3.medium without GPU |
 
 ### Deployment Steps
 
 1. **Update the GitHub Secret**
    - Go to **GitHub repo → Settings → Secrets and variables → Actions**
    - Click `EMBEDDING_MODEL` → **Edit**
-   - Change value to: `sentence-transformers/paraphrase-multilingual-mpnet-base-v2`
+   - Change value to: `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`
    - Click **Save**
 
 2. **Re-run CI to rebuild and push the new Docker image**

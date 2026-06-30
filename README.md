@@ -5,17 +5,17 @@
 ![FastAPI](https://img.shields.io/badge/FastAPI-Backend-green)
 ![LangChain](https://img.shields.io/badge/LangChain-LLM%20Orchestration-orange)
 ![ChromaDB](https://img.shields.io/badge/VectorDB-Chroma-purple)
-![LLM](https://img.shields.io/badge/LLM-OpenAI%20%7C%20Anthropic%20%7C%20Groq-black)
+![LLM](https://img.shields.io/badge/LLM-Azure%20OpenAI%20%7C%20OpenAI%20%7C%20Anthropic-black)
 
 ## 📌 Project Overview
 
 This project is a **production-style AI chatbot backend** built using:
 
 * 🧠 LangGraph for conversation orchestration
-* 🔍 RAG pipeline using ChromaDB
-* 💬 Multi-LLM support (OpenAI, Anthropic, Groq)
-* ⚡ FastAPI for backend APIs
-* 🧠 Redis for memory storage
+* 🔍 RAG pipeline using ChromaDB (k=10, threshold=0.15, chunk=250 chars)
+* 💬 Azure OpenAI (gpt-5-mini) with multi-provider support (OpenAI, Anthropic, Groq)
+* ⚡ FastAPI backend — REST + SSE token-level streaming
+* 🧠 Redis for short-term + long-term summarized memory
 
 It supports:
 
@@ -23,6 +23,9 @@ It supports:
 * Document-based Q&A (RAG)
 * Strict knowledge-base-only responses — the bot refuses to answer outside ingested documents
 * Multilingual responses (Hebrew / Arabic / English — auto-detected from question language)
+* Token-level streaming responses via SSE (Server-Sent Events)
+* Mobile-responsive UI (iOS safe-area, Android back-button, all screen sizes)
+* Out-of-scope guard: cosine score < 0.15 → "contact Ronen Barak" (no hallucination)
 * Scalable backend design
 
 ## 🎯 Why This Project
@@ -159,19 +162,21 @@ cp .env.example .env
 Key variables:
 
 ```env
-# Free option — Groq (recommended for getting started)
-LLM_PROVIDER=groq
-LLM_MODEL=llama-3.1-8b-instant
-GROQ_API_KEY=your_groq_key   # free at console.groq.com
+# Production — Azure OpenAI (recommended)
+LLM_PROVIDER=azure
+AZURE_OPENAI_API_KEY=your_azure_key
+AZURE_OPENAI_ENDPOINT=https://<resource>.openai.azure.com/
+AZURE_OPENAI_API_VERSION=2025-04-01-preview
+AZURE_DEPLOYMENT_NAME=gpt-5-mini
 
-# OR paid — OpenAI
-LLM_PROVIDER=openai
-LLM_MODEL=gpt-4o-mini
-OPENAI_API_KEY=your_openai_key
+# Local dev alternative — Groq (free)
+# LLM_PROVIDER=groq
+# LLM_MODEL=llama-3.1-8b-instant
+# GROQ_API_KEY=your_groq_key   # free at console.groq.com
 
 # Embeddings — multilingual (supports Hebrew, Arabic, English — no API key needed)
 EMBEDDING_PROVIDER=huggingface
-EMBEDDING_MODEL=sentence-transformers/paraphrase-multilingual-mpnet-base-v2
+EMBEDDING_MODEL=sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
 
 REDIS_HOST=localhost
 REDIS_PORT=6379
@@ -264,14 +269,14 @@ Configurable via environment variables:
 
 ## 🧠 Key Features
 
-* ✅ Conversational memory (short + long-term)
-* ✅ RAG-based retrieval system
-* ✅ Multi-LLM provider support (OpenAI, Anthropic, Groq)
-* ✅ Multilingual responses (Hebrew / Arabic / English — auto-detected from question language)
+* ✅ Conversational memory (short + long-term rolling summary)
+* ✅ RAG-based retrieval (k=10, threshold=0.15, chunk=250 chars)
+* ✅ SSE token-level streaming with retry + invoke() fallback
+* ✅ Azure OpenAI primary + multi-provider support (OpenAI, Anthropic, Groq)
+* ✅ Multilingual responses (Hebrew / Arabic / English — auto-detected from question)
 * ✅ LangGraph workflow orchestration
 * ✅ Redis-based persistence with TTL
-* ✅ Modular backend design
-* ✅ FastAPI production API layer
+* ✅ Mobile-responsive UI (iOS + Android + all screen sizes)
 * ✅ Dockerized with Docker Compose
 * ✅ Structured logging + CORS + input validation
 
@@ -284,7 +289,7 @@ Configurable via environment variables:
 ## ⚡ Tech Stack
 
 * **Backend:** FastAPI
-* **LLM:** OpenAI / Anthropic / Groq
+* **LLM:** Azure OpenAI (gpt-5-mini) / OpenAI / Anthropic / Groq
 * **Orchestration:** LangGraph
 * **Framework:** LangChain
 * **Vector DB:** ChromaDB

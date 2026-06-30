@@ -17,10 +17,10 @@ This update adds full Hebrew language support to the RAG chatbot. The chatbot no
 
 | Setting | Value |
 |---------|-------|
-| `LLM_PROVIDER` | `groq` |
-| `LLM_MODEL` | `llama-3.1-8b-instant` |
+| `LLM_PROVIDER` | `azure` |
+| `AZURE_DEPLOYMENT_NAME` | `gpt-5-mini` |
 | `EMBEDDING_PROVIDER` | `huggingface` |
-| `EMBEDDING_MODEL` | `sentence-transformers/paraphrase-multilingual-mpnet-base-v2` |
+| `EMBEDDING_MODEL` | `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` |
 
 ---
 
@@ -113,7 +113,7 @@ def _summary_language(messages: list) -> str:
 **What changed:** Added a comment documenting the multilingual embedding model recommended for Hebrew PDFs.
 
 ```
-# For Hebrew/multilingual PDFs use: sentence-transformers/paraphrase-multilingual-mpnet-base-v2
+# For Hebrew/multilingual PDFs use: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
 EMBEDDING_PROVIDER=openai
 EMBEDDING_MODEL=text-embedding-3-small
 ```
@@ -128,11 +128,11 @@ Update this secret:
 
 | Secret | Old Value | New Value |
 |--------|-----------|-----------|
-| `EMBEDDING_MODEL` | `all-MiniLM-L6-v2` | `sentence-transformers/paraphrase-multilingual-mpnet-base-v2` |
+| `EMBEDDING_MODEL` | `all-MiniLM-L6-v2` | `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` |
 
 After updating, re-run the CI pipeline to redeploy.
 
-> **Why this matters:** `all-MiniLM-L6-v2` is trained primarily on English data and has weak Hebrew embedding accuracy. `paraphrase-multilingual-mpnet-base-v2` is trained on 50+ languages including Hebrew and produces accurate semantic embeddings for Hebrew text, which directly improves RAG retrieval quality.
+> **Why this matters:** `all-MiniLM-L6-v2` is trained primarily on English data and has weak Hebrew embedding accuracy. `paraphrase-multilingual-MiniLM-L12-v2` is trained on 50+ languages including Hebrew and produces accurate semantic embeddings for Hebrew text, which directly improves RAG retrieval quality. It is also 120MB vs the larger mpnet variant (420MB), making it suitable for CPU-only EC2 instances.
 
 ---
 
