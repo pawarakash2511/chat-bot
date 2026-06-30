@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 graph = build_graph()
 
 _RELEVANCE_THRESHOLD = 0.2
+_MAX_STREAM_RETRIES = 2
 
 
 def conversation(user_id: str, q: str) -> str:
@@ -100,17 +101,26 @@ async def stream_conversation(user_id: str, q: str) -> AsyncGenerator[str, None]
 
         llm = get_llm(temperature=0, max_tokens=600)
         logger.info("LLM stream starting for user %s", user_id)
-        token_count = 0
-        async for chunk in llm.astream(prompt):
-            token = chunk.content
-            if token:
-                token_count += 1
-                full_response += token
-                yield f"data: {json.dumps({'token': token})}\n\n"
-        logger.info("LLM stream done for user %s: %d tokens", user_id, token_count)
+        for attempt in range(_MAX_STREAM_RETRIES):
+            token_count = 0
+            attempt_response = ""
+            async for chunk in llm.astream(prompt):
+                token = chunk.content
+                if token:
+                    token_count += 1
+                    attempt_response += token
+                    full_response += token
+                    yield f"data: {json.dumps({'token': token})}\n\n"
+            logger.info("LLM stream attempt %d/%d for user %s: %d tokens",
+                        attempt + 1, _MAX_STREAM_RETRIES, user_id, token_count)
+            if attempt_response:
+                break
+            if attempt < _MAX_STREAM_RETRIES - 1:
+                logger.warning("0-token stream attempt %d for user %s, retrying stream...",
+                               attempt + 1, user_id)
 
         if not full_response:
-            logger.warning("0-token stream for user %s, retrying with invoke()", user_id)
+            logger.warning("All stream attempts empty for user %s, falling back to invoke()", user_id)
             response = await loop.run_in_executor(None, lambda: llm.invoke(prompt))
             logger.info("Invoke response: content=%r, kwargs=%r", response.content, response.additional_kwargs)
             full_response = response.content or ""
