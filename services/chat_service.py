@@ -99,7 +99,7 @@ async def stream_conversation(user_id: str, q: str) -> AsyncGenerator[str, None]
             lang=lang,
         )
 
-        llm = get_llm(temperature=0, max_tokens=600)
+        llm = get_llm(temperature=0, max_tokens=4000)
         logger.info("LLM stream starting for user %s", user_id)
         for attempt in range(_MAX_STREAM_RETRIES):
             token_count = 0
